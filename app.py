@@ -4,6 +4,7 @@ from keras.models import load_model
 from PIL import Image, ImageOps #Install pillow instead of PIL
 import numpy as np
 import streamlit as st
+import datetime 
 
 # Disable scientific notation for clarity
 np.set_printoptions(suppress=True)
@@ -32,8 +33,14 @@ if img_file_buffer is not None:
 # 들어온 이미지를 224 x 224 x 3차원으로 변환하기 위해서 빈 벡터를 만들어 놓음
 data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
 
+# 이전 예측 결과 저장
+if "history" not in st.session_state:
+    st.session_state["history"] = []
 
 if img_file_buffer is not None:
+    # 이미지명 추출 
+    image_name = img_file_buffer.name if hasattr(img_file_buffer, "name") else "카메라 이미지"
+
     # # To read image file buffer as a PIL Image:
     # image = Image.open(img_file_buffer) # 입력받은 사진을 행렬로 변환
 
@@ -75,7 +82,25 @@ if img_file_buffer is not None:
 
     # 예측 결과에서 신뢰도를 꺼내 옵니다  
     confidence_score = prediction[0][index]
+    
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     st.header("출력 결과")
     st.write('Class:', class_name[2:], end="")
     st.write('Confidence score:', confidence_score)
+    
+    st.session_state["history"].append({
+        "image_name": image_name,
+        "class": class_name[2:],  # 앞에 공백 제거
+        "confidence": round(confidence_score, 4),
+        "time": timestamp
+    })
+
+# 🔹 사이드바에 저장된 예측 결과 표시
+st.sidebar.header("📜 예측 기록")
+for item in reversed(st.session_state["history"]):  # 최신 항목이 위로 오도록 reverse
+    st.sidebar.write(f"🕒 {item['time']}")
+    st.sidebar.write(f"📁 **이미지:** {item['image_name']}")
+    st.sidebar.write(f"🔍 **Class:** {item['class']}")
+    st.sidebar.write(f"🎯 **Confidence:** {item['confidence']:.4f}")
+    st.sidebar.write("---")  # 구분선 추가
