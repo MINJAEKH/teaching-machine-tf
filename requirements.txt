@@ -1,4 +1,5 @@
 keras
 numpy
 streamlit
+plotly
 tensorflow==2.12
