@@ -12,16 +12,20 @@ np.set_printoptions(suppress=True)
 model = load_model('keras_model.h5', compile=False)
 
 # Load the labels
-class_names = open('labels.txt', 'r').readlines()
+class_names = open('labels.txt', 'r', encoding="utf-8").readlines()
 
+st.title("감귤류 분류하기")
 # 선택 옵션: 카메라 입력 또는 파일 업로드
-input_method = st.radio("이미지 입력 방식 선택", ["카메라 사용", "파일 업로드"])
+input_method = st.selectbox("이미지 입력 방식 선택", ["카메라 사용", "파일 업로드"])
 
 if input_method == "카메라 사용":
     img_file_buffer = st.camera_input("정중앙에 사물을 위치하고 사진찍기 버튼을 누르세요")
 else:
     img_file_buffer = st.file_uploader("이미지 파일 업로드", type=["png", "jpg", "jpeg"])
 
+if img_file_buffer is not None:
+    image = Image.open(img_file_buffer)  # 이미지 불러오기
+    st.image(image, caption="업로드한 이미지", use_container_width=True)
 # Create the array of the right shape to feed into the keras model
 # The 'length' or number of images you can put into the array is
 # determined by the first position in the shape tuple, in this case 1.
@@ -72,5 +76,6 @@ if img_file_buffer is not None:
     # 예측 결과에서 신뢰도를 꺼내 옵니다  
     confidence_score = prediction[0][index]
 
+    st.header("출력 결과")
     st.write('Class:', class_name[2:], end="")
     st.write('Confidence score:', confidence_score)
